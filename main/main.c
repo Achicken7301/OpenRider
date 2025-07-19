@@ -3,21 +3,16 @@
 // Create a task with every 1s
 void periodic_task(void *pvParameter)
 {
-  vTaskDelay(pdMS_TO_TICKS(10 * 1000));
+  vTaskDelay(pdMS_TO_TICKS(5 * 1000));
   int count = 5;
 
   while (1)
   {
     if (count > 0)
     {
-      set_fsm_state(ESPNOW_MESH_BROADCAST);
+      set_brcst_fsm_state(MSH_BROADCAST_SEND);
       vTaskDelay(pdMS_TO_TICKS(5000));
       count--;
-    }
-    else
-    {
-      espnow_mesh_list_peer();
-      vTaskDelay(pdMS_TO_TICKS(10000));
     }
   }
 }
@@ -33,10 +28,12 @@ void app_main(void)
   }
   ESP_ERROR_CHECK(ret);
 
+  network_espnow_mesh_init();
+
   xTaskCreate(periodic_task, "periodic_task", 2048, NULL, 5, NULL);
 
   while (1)
   {
-    fsm_espnow_mesh();
+    MSH_Broadcast_FSM();
   }
 }
