@@ -1,19 +1,29 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include "esp_now.h"
-#include "esp_log.h"
-#include "esp_wifi.h"
-#include "esp_event.h"
-#include "nvs_flash.h"
-#include "esp_err.h"
-#include "driver/gpio.h"
 
-#include "network_espnow_mesh.h"
-#include "global.h"
+#include "driver/gptimer.h"
 
+// #include "intercom_fsm.h"
+#include "scheduler.h"
+// #include "wireless_comm.h"
+// #include "espnow_driver.h"
+#include "simple_log.h"
+// #include "config.h"
+
+char *MAIN_TAG = "MAIN";
+
+#ifdef USE_ESPNOW_COMM
+#include "espnow_driver.h"
+
+#elif USE_NRF24_COMM
+#include "nrf24_driver.h"
+
+#elif USE_LORA_COMM
+#include "lora_driver.h"
+
+#endif
+
+void TIM_Init();
 
 #endif // MAIN_H

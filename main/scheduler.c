@@ -1,5 +1,7 @@
 #include "scheduler.h"
 
+vTask SCH_Tasks[SCH_MAX_TASK];
+
 /**
  * @brief Similar to timerRun()
  *
@@ -44,7 +46,7 @@ void SCH_Dispatch()
       // If period == 0 -> delele task from tasks
       if (SCH_Tasks[i].period == 0)
       {
-        SCH_Delele(i);
+        SCH_Delete(i);
       }
     }
   }
@@ -87,7 +89,7 @@ void SCH_Add(void *task, uint16_t delay, uint16_t period)
  *
  * @param index position of task in vtasks
  */
-void SCH_Delele(int index)
+void SCH_Delete(int index)
 {
   SCH_Tasks[index].pFn = NULL;
   SCH_Tasks[index].delay = 0;

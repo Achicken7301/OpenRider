@@ -1,6 +1,5 @@
 #include "network_espnow_mesh.h"
 
-peer_broadcast_info_t PEERS[MAX_PEERS] = {0};
 peer_recv_info_t temp_recv = {0};
 void _network_espnow_mesh_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status);
 void _network_espnow_mesh_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len);
@@ -42,9 +41,10 @@ void _network_espnow_mesh_recv_cb(const esp_now_recv_info_t *recv_info, const ui
   // Check if the received data is a command
   if (len == sizeof(MshBroadcastCommand_t))
   {
-    set_brcst_fsm_state(MSH_BROADCAST_RECEIVE);
-    memcpy(temp_recv.p.peerInfo.peer_addr, recv_info->src_addr, ESP_NOW_ETH_ALEN);
-    memcpy(&temp_recv.data, data, sizeof(MshBroadcastCommand_t));
+    // memcpy(temp_recv.p.peerInfo.peer_addr, recv_info->src_addr, ESP_NOW_ETH_ALEN);
+    // memcpy(&temp_recv.p.rssi, recv_info->rx_ctrl->rssi, sizeof(recv_info->rx_ctrl->rssi));
+    // memcpy(&temp_recv.data, data, sizeof(MshBroadcastCommand_t));
+    // set_brcst_fsm_state(MSH_BROADCAST_RECEIVE);
   }
 
   // Handle other types of received data here if needed
@@ -61,7 +61,8 @@ void network_add_peer(peer_broadcast_info_t *peerInfo)
 
   case ESP_OK:
   {
-    if (memcmp(peerInfo->peerInfo.peer_addr, BROADCAST_ADDR, ESP_NOW_ETH_ALEN) == 0)
+    // if (memcmp(peerInfo->peerInfo.peer_addr, BROADCAST_ADDR, ESP_NOW_ETH_ALEN) == 0)
+    if (PEERS[BROADCAST_INDEX].isRegister == 0)
     {
       ESP_LOGI("Network ESPNOW", "Broadcast peer added");
       PEERS[BROADCAST_INDEX].isActive = 1;

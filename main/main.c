@@ -1,39 +1,54 @@
 #include "main.h"
 
-// Create a task with every 1s
-void periodic_task(void *pvParameter)
+void task01()
 {
-  vTaskDelay(pdMS_TO_TICKS(5 * 1000));
-  int count = 5;
-
-  while (1)
-  {
-    if (count > 0)
-    {
-      set_brcst_fsm_state(MSH_BROADCAST_SEND);
-      vTaskDelay(pdMS_TO_TICKS(5000));
-      count--;
-    }
-  }
+  static uint32_t count = 0;
+  LOGI(MAIN_TAG, "HELLO WORLD %d times", count++);
+  LOGE(MAIN_TAG, "HELLO WORLD %d times", count++);
+  LOGW(MAIN_TAG, "HELLO WORLD %d times", count++);
 }
 
 void app_main(void)
 {
-  // Initialize NVS
-  esp_err_t ret = nvs_flash_init();
-  if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-  {
-    ESP_ERROR_CHECK(nvs_flash_erase());
-    ret = nvs_flash_init();
-  }
-  ESP_ERROR_CHECK(ret);
+  SCH_Add(task01, 1000, 1000);
 
-  network_espnow_mesh_init();
-
-  xTaskCreate(periodic_task, "periodic_task", 2048, NULL, 5, NULL);
+  TIM_Init();
+  // espnow_driver_init();
 
   while (1)
   {
-    MSH_Broadcast_FSM();
+    SCH_Dispatch();
+    // IntercomFSM();
   }
+}
+
+bool timer_cb(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx)
+{
+  SCH_Update();
+  return true;
+}
+
+void TIM_Init()
+{
+  gptimer_handle_t timer;
+  gptimer_config_t cfg = {
+      .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+      .direction = GPTIMER_COUNT_UP,
+      .resolution_hz = 1000 * 1000, // 1MHz → 1 us per tick
+  };
+  ESP_ERROR_CHECK(gptimer_new_timer(&cfg, &timer));
+
+  gptimer_alarm_config_t alarm = {
+      .alarm_count = 1000, // every 1000 ticks (1ms) call function_cb
+      .reload_count = 0,
+      .flags.auto_reload_on_alarm = true,
+  };
+  ESP_ERROR_CHECK(gptimer_set_alarm_action(timer, &alarm));
+
+  gptimer_event_callbacks_t cbs = {
+      .on_alarm = timer_cb,
+  };
+  ESP_ERROR_CHECK(gptimer_register_event_callbacks(timer, &cbs, NULL));
+  ESP_ERROR_CHECK(gptimer_enable(timer));
+  ESP_ERROR_CHECK(gptimer_start(timer));
 }
