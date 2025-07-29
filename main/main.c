@@ -1,24 +1,14 @@
 #include "main.h"
 
-void task01()
-{
-  static uint32_t count = 0;
-  LOGI(MAIN_TAG, "HELLO WORLD %d times", count++);
-  LOGE(MAIN_TAG, "HELLO WORLD %d times", count++);
-  LOGW(MAIN_TAG, "HELLO WORLD %d times", count++);
-}
 
 void app_main(void)
 {
-  SCH_Add(task01, 1000, 1000);
-
   TIM_Init();
-  // espnow_driver_init();
 
   while (1)
   {
     SCH_Dispatch();
-    // IntercomFSM();
+    IntercomFSM();
   }
 }
 

@@ -8,10 +8,7 @@
 #include "scheduler.h"
 #include "simple_log.h"
 
-#define PEER_INDEX 1
-#define BROADCAST_INDEX 0
 #define BROADCAST_MAX_COUNTER 30
-extern const uint8_t BROADCAST_ADDR[6];
 
 extern char *PM_TAG;
 
@@ -37,5 +34,6 @@ void PM_add_peer(uint8_t *mac, int rssi);
 PM_Err_t PM_get_peer(uint8_t *, PeerEntry *);
 PM_Err_t PM_isEmpty();
 void PM_update_peer_list();
+void PM_list_peer();
 
 #endif

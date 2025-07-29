@@ -4,11 +4,12 @@
 
 #include "driver/gptimer.h"
 
-// #include "intercom_fsm.h"
+#include "intercom_fsm.h"
 #include "scheduler.h"
 // #include "wireless_comm.h"
 // #include "espnow_driver.h"
 #include "simple_log.h"
+// #include "peer_manager.h"
 // #include "config.h"
 
 char *MAIN_TAG = "MAIN";

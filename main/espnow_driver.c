@@ -1,41 +1,78 @@
 #include "espnow_driver.h"
 
-wireless_Err_t espnow_send_cb(wireless_packet_t *);
-wireless_Err_t espnow_receive_cb(wireless_packet_t *);
-wireless_Err_t espnow_send(wireless_packet_t *);
-wireless_Err_t espnow_receive(wireless_packet_t *);
+const uint8_t BROADCAST_ADDR[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+wireless_packet_t rcv_pkg = {0};
+
+void espnow_set_receive_packet(wireless_packet_t *pkg)
+{
+}
+
+wireless_packet_t espnow_get_receive_packet()
+{
+  return rcv_pkg;
+}
+
+wireless_Err_t espnow_send_cb(wireless_packet_t *pkg)
+{
+  return WL_ERR_OK;
+}
+
+wireless_Err_t espnow_receive_cb(wireless_packet_t *pkg)
+{
+  // Should add to task and let the main() handle it
+  // I'll implement this later
+  return WL_ERR_OK;
+}
+
+wireless_Err_t espnow_send(wireless_packet_t *pkg)
+{
+  // LOGI(WIRELESS_TAG, "Espnow send with data cmd: %d\tpayload: %s,\tTTL: %d", pkg->cmd, pkg->payload, pkg->ttl);
+  ESP_ERROR_CHECK(esp_now_send(pkg->src_mac, (uint8_t *)pkg, sizeof(pkg)));
+  return WL_ERR_OK;
+}
+
+wireless_Err_t espnow_receive(wireless_packet_t *pkg)
+{
+
+  return WL_ERR_OK;
+}
 
 void _espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
+  LOGI(WIRELESS_TAG, "Sent pkg %s MAC: %02x:%02x:%02x:%02x:%02x:%02x", (status == ESP_NOW_SEND_SUCCESS) ? "Successfully" : "Fail", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 }
+
 void _espnow_rcv_cb(const esp_now_recv_info_t *esp_now_info,
-                         const uint8_t *data, int data_len)
+                    const uint8_t *data, int data_len)
 {
-  // // Receive with command
-  // if (data_len == sizeof(wireless_cmd_t))
-  // {
-  //   wireless_cmd_t cmd = (wireless_cmd_t)(*data);
-  //   switch (cmd)
-  //   {
-  //   case CMD_ADD_PEER:
-  //   {
-  //     PM_add_peer(esp_now_info->src_addr, esp_now_info->rx_ctrl->rssi);
-  //     esp_now_peer_info_t new_p = {
-  //         .channel = CHANNEL_FOR_BRSTER,
-  //         .encrypt = false,
-  //         .ifidx = WIFI_MODE_STA,
-  //     };
-  //     memcpy(new_p.peer_addr, esp_now_info->src_addr, sizeof(new_p.peer_addr));
-  //     esp_now_add_peer(&new_p);
-  //     break;
-  //   }
+  memset(&rcv_pkg, 0, sizeof(rcv_pkg));
+  memcpy(&rcv_pkg, (const wireless_packet_t *)data, sizeof(wireless_packet_t));
+  memcpy(&rcv_pkg.src_mac, esp_now_info->src_addr, 6);
+  rcv_pkg.rssi = esp_now_info->rx_ctrl->rssi;
+  if (sizeof(rcv_pkg.cmd) == sizeof(wireless_cmd_t))
+  {
+    // LOGI(WIRELESS_TAG, "Receive cmd from " MAC_STR, rcv_pkg.src_mac[0], rcv_pkg.src_mac[1], rcv_pkg.src_mac[2], rcv_pkg.src_mac[3], rcv_pkg.src_mac[4], rcv_pkg.src_mac[5]);
+    switch (rcv_pkg.cmd)
+    {
+    case CMD_ADD_PEER:
+    {
+      // LOGI(WIRELESS_TAG, "The cmd: add peer");
+      esp_now_peer_info_t p = PEER_BRCST_INFO_DEFAULT();
+      memcpy(p.peer_addr, rcv_pkg.src_mac, 6);
+      esp_err_t r = esp_now_add_peer(&p);
+      if (r == ESP_OK)
+      {
+        cmd_add_peer_flag = 1; // this flag for "other modules" (peer_manager) to communicate
+      }
+      break;
+    }
 
-  //   default:
-  //     break;
-  //   }
-  // }
-
-  // // Receive with audio
+    default:
+      LOGE(WIRELESS_TAG, "Unknown cmd");
+      break;
+    }
+  }
 }
 
 void espnow_driver_init()
@@ -67,10 +104,18 @@ void espnow_driver_init()
   ESP_ERROR_CHECK(esp_now_register_recv_cb(_espnow_rcv_cb));
   wireless_comm_config_t wl_cfg = {
       .type = ESPNOW_COMM,
-      .receive = espnow_receive,
-      .receive_cb = espnow_receive_cb,
-      .send = espnow_send,
-      .send_cb = espnow_send_cb};
+      .receive = &espnow_receive,
+      .receive_cb = &espnow_receive_cb,
+      .send = &espnow_send,
+      .send_cb = &espnow_send_cb,
+      .get_rcv_pkg = &espnow_get_receive_packet,
+      .set_rcv_pkg = &espnow_set_receive_packet,
+  };
 
   wireless_init(&wl_cfg);
+
+  esp_now_peer_info_t brster = PEER_BRCST_INFO_DEFAULT();
+  memcpy(brster.peer_addr, BROADCAST_ADDR, 6);
+  esp_err_t r = esp_now_add_peer(&brster);
+  LOGI(WIRELESS_TAG, "Add broadcast peer %s", (r == WL_ERR_OK) ? "Successfull" : "Fail");
 }

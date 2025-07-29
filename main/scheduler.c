@@ -43,7 +43,6 @@ void SCH_Dispatch()
       ((void (*)())SCH_Tasks[i].pFn)();
       SCH_Tasks[i].flag -= 1;
 
-      // If period == 0 -> delele task from tasks
       if (SCH_Tasks[i].period == 0)
       {
         SCH_Delete(i);
@@ -72,16 +71,15 @@ void SCH_Add(void *task, uint16_t delay, uint16_t period)
 
   if (index > SCH_MAX_TASK)
   {
-    // printf("Over tasks in scheduler\n");
+    printf("Over tasks in scheduler\n");
+    return;
   }
-  else
-  {
-    // Found index in Task which is null, then add Task.
-    SCH_Tasks[index].pFn = task;
-    SCH_Tasks[index].delay = delay / CLOCK;
-    SCH_Tasks[index].period = period / CLOCK;
-    SCH_Tasks[index].flag = 0;
-  }
+
+  // Found index in Task which is null, then add Task.
+  SCH_Tasks[index].pFn = task;
+  SCH_Tasks[index].delay = delay / CLOCK;
+  SCH_Tasks[index].period = period / CLOCK;
+  SCH_Tasks[index].flag = 0;
 }
 
 /**
