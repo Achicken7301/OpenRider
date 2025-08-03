@@ -4,14 +4,17 @@
 #include "stdint.h"
 #include "scheduler.h"
 #include "wireless_comm.h"
-#include "espnow_driver.h"
+#include "config.h"
+#include "audio.h"
 #include "peer_manager.h"
 
-
 #define INTERCOM_FSM_ENUM 10
-#define MAX_RECEIVE_CMD_TIME 30
+#define MAX_RECEIVE_CMD_TIME 5
 
-// char * INTERCOM_TAG ="INTERCOM";
+#ifdef USE_ESPNOW_COMM
+#include "espnow_driver.h"
+#endif
+
 
 typedef enum
 {
@@ -20,15 +23,12 @@ typedef enum
   I_IDLE,
   I_SEND,
   I_RECEIVE,
-  I_FORWARDER,
-  I_AUDIO_PLAY
+  I_RECORDER,
 } intercom_fsm_t;
-
 
 intercom_fsm_t get_intercom_fsm_state();
 void intercom_set_fsm(intercom_fsm_t);
 void intercom_set_comm(wireless_comm_type_t);
-
 
 void IntercomFSM();
 

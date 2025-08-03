@@ -6,6 +6,10 @@
 // #define USE_NRF24_COMM
 // #define USE_LORA_COMM
 
+#define PACKET_STR "\t%02x %02x %02x %02x %02x %02x %02x %02x"
+#define PACKET_SRC(pkg) (pkg).payload[i], (pkg).payload[i + 1],                           \
+                        (pkg).payload[i + 2], (pkg).payload[i + 3], (pkg).payload[i + 4], \
+                        (pkg).payload[i + 5], (pkg).payload[i + 6], (pkg).payload[i + 7]
 
 typedef enum
 {

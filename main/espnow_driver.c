@@ -1,5 +1,6 @@
 #include "espnow_driver.h"
 
+int receive_audio_data_flag = 0;
 const uint8_t BROADCAST_ADDR[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 wireless_packet_t rcv_pkg = {0};
@@ -27,8 +28,8 @@ wireless_Err_t espnow_receive_cb(wireless_packet_t *pkg)
 
 wireless_Err_t espnow_send(wireless_packet_t *pkg)
 {
-  // LOGI(WIRELESS_TAG, "Espnow send with data cmd: %d\tpayload: %s,\tTTL: %d", pkg->cmd, pkg->payload, pkg->ttl);
-  ESP_ERROR_CHECK(esp_now_send(pkg->src_mac, (uint8_t *)pkg, sizeof(pkg)));
+  ESP_ERROR_CHECK(esp_now_send(pkg->src_mac, (uint8_t *)pkg, sizeof(wireless_packet_t)));
+
   return WL_ERR_OK;
 }
 
@@ -47,10 +48,11 @@ void _espnow_rcv_cb(const esp_now_recv_info_t *esp_now_info,
                     const uint8_t *data, int data_len)
 {
   memset(&rcv_pkg, 0, sizeof(rcv_pkg));
-  memcpy(&rcv_pkg, (const wireless_packet_t *)data, sizeof(wireless_packet_t));
-  memcpy(&rcv_pkg.src_mac, esp_now_info->src_addr, 6);
+  memcpy(&rcv_pkg, data, sizeof(wireless_packet_t));
   rcv_pkg.rssi = esp_now_info->rx_ctrl->rssi;
-  if (sizeof(rcv_pkg.cmd) == sizeof(wireless_cmd_t))
+  memcpy(&rcv_pkg.src_mac, esp_now_info->src_addr, 6);
+
+  if (rcv_pkg.cmd != CMD_NONE)
   {
     // LOGI(WIRELESS_TAG, "Receive cmd from " MAC_STR, rcv_pkg.src_mac[0], rcv_pkg.src_mac[1], rcv_pkg.src_mac[2], rcv_pkg.src_mac[3], rcv_pkg.src_mac[4], rcv_pkg.src_mac[5]);
     switch (rcv_pkg.cmd)
@@ -69,10 +71,15 @@ void _espnow_rcv_cb(const esp_now_recv_info_t *esp_now_info,
     }
 
     default:
-      LOGE(WIRELESS_TAG, "Unknown cmd");
+      LOGE(WIRELESS_TAG, "Unknown cmd %d", rcv_pkg.cmd);
       break;
     }
+    return;
   }
+
+  // Receive audio packet
+
+  receive_audio_data_flag = 1;
 }
 
 void espnow_driver_init()

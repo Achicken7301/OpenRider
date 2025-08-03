@@ -6,4 +6,5 @@ idf_component_register(SRCS  "espnow_driver.c" "main.c"
 "scheduler.c"
 "simple_log.c"
 "wireless_comm.c"
+"audio.c"
 INCLUDE_DIRS "." "include")

@@ -9,6 +9,7 @@
 #include "simple_log.h"
 
 #define BROADCAST_MAX_COUNTER 30
+#define MAX_PEERS 10
 
 extern char *PM_TAG;
 
@@ -26,7 +27,6 @@ typedef struct
   bool isActive;
 } PeerEntry;
 
-#define MAX_PEERS 20
 extern PeerEntry peer_table[MAX_PEERS];
 
 void PM_init();
@@ -35,5 +35,6 @@ PM_Err_t PM_get_peer(uint8_t *, PeerEntry *);
 PM_Err_t PM_isEmpty();
 void PM_update_peer_list();
 void PM_list_peer();
+PeerEntry *PM_get_active_peers();
 
 #endif

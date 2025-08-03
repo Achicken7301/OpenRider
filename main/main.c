@@ -4,6 +4,7 @@
 void app_main(void)
 {
   TIM_Init();
+  // TODO: Write benchmark test
 
   while (1)
   {

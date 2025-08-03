@@ -38,17 +38,19 @@ typedef enum
 {
   CMD_ADD_PEER = WL_CMD_ENUM,
   CMD_UPDATE_RSSI,
+  CMD_NONE,
 } wireless_cmd_t;
 
 typedef struct
 {
   wireless_cmd_t cmd;
-  uint8_t payload[PAYLOAD_SIZE];
-  uint8_t src_mac[6];
+  uint8_t payload_len;
   signed rssi : 8;
-  uint8_t last_hop[6];
   uint8_t ttl;
   uint16_t seq_num;
+  uint8_t src_mac[6];
+  uint8_t last_hop[6];
+  uint8_t payload[PAYLOAD_SIZE];
 } wireless_packet_t;
 
 extern bool cmd_add_peer_flag;

@@ -19,6 +19,8 @@ extern const uint8_t BROADCAST_ADDR[6];
     .ifidx = ESP_IF_WIFI_STA,             \
 }
 
+extern int receive_audio_data_flag;
+
 void espnow_driver_init();
 
 /**
@@ -39,12 +41,12 @@ wireless_Err_t espnow_receive_cmd_add_peer(wireless_packet_t *);
  *
  * @return wireless_packet_t
  */
-wireless_packet_t espnow_get_receive_packet();
+// wireless_packet_t espnow_get_receive_packet();
 
 /**
  * @brief This API is used by peer_manager
  * 
  */
-void espnow_set_receive_packet(wireless_packet_t *);
+// void espnow_set_receive_packet(wireless_packet_t *);
 
 #endif // ESPNOW_DRIVER_H
